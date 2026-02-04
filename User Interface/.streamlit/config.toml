@@ -1,0 +1,21 @@
+# Streamlit Configuration for India Earth-Observation Intelligence System
+# This file configures the appearance and behavior of the Streamlit application
+
+# Theme configuration for high-contrast black and white design
+[theme]
+primaryColor = "#FFFFFF"              # White for primary UI elements
+backgroundColor = "#000000"            # Black background for main content
+secondaryBackgroundColor = "#1E1E1E"  # Dark gray for secondary elements
+textColor = "#FFFFFF"                 # White text for optimal contrast
+font = "sans serif"                   # Clean, modern font
+
+# Server configuration for deployment
+[server]
+headless = true                       # Run without browser auto-open (for cloud deployment)
+port = 8501                          # Default Streamlit port
+enableCORS = false                   # Disable CORS (not needed for single-origin app)
+enableXsrfProtection = true          # Enable XSRF protection for security
+
+# Browser configuration
+[browser]
+gatherUsageStats = false             # Disable usage statistics collection
