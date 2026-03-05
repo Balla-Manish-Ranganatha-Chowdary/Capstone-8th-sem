@@ -13,7 +13,7 @@ font = "sans serif"                   # Clean, modern font
 [server]
 headless = true                       # Run without browser auto-open (for cloud deployment)
 port = 8501                          # Default Streamlit port
-enableCORS = false                   # Disable CORS (not needed for single-origin app)
+enableCORS = true                    # Must be true when XSRF protection is enabled
 enableXsrfProtection = true          # Enable XSRF protection for security
 
 # Browser configuration

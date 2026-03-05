@@ -11,6 +11,11 @@ import folium
 from streamlit_folium import st_folium
 from typing import Optional, Dict, Tuple
 import logging
+import os
+
+# Define absolute paths
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_PATH = os.path.join(BASE_DIR, 'data', 'india_states.json')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -71,7 +76,7 @@ def render_india_map(selected_state: Optional[str] = None) -> Dict[str, float]:
     if selected_state:
         # Load state coordinates
         try:
-            with open('data/india_states.json', 'r') as f:
+            with open(DATA_PATH, 'r') as f:
                 states_data = json.load(f)
                 for state in states_data['states']:
                     if state['name'] == selected_state:
@@ -136,7 +141,7 @@ def render_state_selector() -> Optional[Tuple[str, float, float]]:
     """
     try:
         # Load states data
-        with open('data/india_states.json', 'r') as f:
+        with open(DATA_PATH, 'r') as f:
             states_data = json.load(f)
         
         # Validate data structure
@@ -185,7 +190,7 @@ def render_state_selector() -> Optional[Tuple[str, float, float]]:
         return None
         
     except FileNotFoundError:
-        logger.error("State data file not found: data/india_states.json")
+        logger.error(f"State data file not found: {DATA_PATH}")
         st.error("❌ State data file not found. Please ensure data/india_states.json exists.")
         return None
     except json.JSONDecodeError as e:

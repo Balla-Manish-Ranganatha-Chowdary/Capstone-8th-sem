@@ -85,6 +85,12 @@ with st.sidebar:
     
     if state_selection:
         state_name, state_lat, state_lon = state_selection
+        
+        # Clear stale data if state changed
+        if st.session_state.selected_state != state_name:
+            st.session_state.chat_history = []
+            st.session_state.analysis_results = None
+            
         st.session_state.selected_state = state_name
         st.session_state.selected_location = {
             "latitude": state_lat,
@@ -167,7 +173,7 @@ with st.sidebar:
 
 
 # Main content area
-col1, col2 = st.columns([3, 2])
+col1, col2 = st.columns([7, 3])
 
 with col1:
     st.subheader("🗺️ India Map")
@@ -179,12 +185,26 @@ with col1:
     
     # Handle map click
     if map_click:
+        # Clear stale data if clicked a new location
+        if st.session_state.selected_location != map_click:
+            st.session_state.chat_history = []
+            st.session_state.analysis_results = None
+            
         st.session_state.selected_location = map_click
         st.session_state.selected_state = None  # Clear state selection when map is clicked
         st.success(
             f"Location selected: {map_click['latitude']:.4f}°N, {map_click['longitude']:.4f}°E"
         )
         st.rerun()
+
+    st.divider()
+
+    # Analysis results display
+    if st.session_state.analysis_results:
+        render_analysis_output(st.session_state.analysis_results)
+    else:
+        st.info("👆 Select a location and click **Analyze** to view environmental analysis.")
+
 
 with col2:
     st.subheader("📊 Current Selection")
@@ -201,26 +221,21 @@ with col2:
     else:
         st.info("No location selected. Please select a location to begin analysis.")
 
-st.divider()
-
-# Analysis results display
-if st.session_state.analysis_results:
-    render_analysis_output(st.session_state.analysis_results)
-    
-    st.divider()
-    
     # Chat interface (only show if analysis has been performed)
-    if st.session_state.selected_state or st.session_state.selected_location:
-        # Determine state name for context
-        context_state = st.session_state.selected_state or "Selected Location"
-        
-        render_chat_interface(
-            state=context_state,
-            start_year=st.session_state.start_year,
-            end_year=st.session_state.end_year
-        )
-else:
-    st.info("👆 Select a location and click **Analyze** to view environmental analysis and access the chat assistant.")
+    if st.session_state.analysis_results and (st.session_state.selected_state or st.session_state.selected_location):
+        st.divider()
+        # Make chat collapsible
+        with st.expander("💬 Chat Assistant", expanded=False):
+            # Determine state name for context
+            context_state = st.session_state.selected_state or "Selected Location"
+            
+            render_chat_interface(
+                state=context_state,
+                start_year=st.session_state.start_year,
+                end_year=st.session_state.end_year
+            )
+    elif not st.session_state.analysis_results:
+        st.info("👆 Analyze a location to unlock the Chat Assistant.")
 
 # Footer
 st.divider()
