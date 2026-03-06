@@ -1,49 +1,125 @@
 # India Earth-Observation Intelligence System
 
-A Streamlit-based web application providing environmental analysis, risk forecasting, and conversational intelligence for locations within India using ISRO satellite data.
+A full-stack web application designed to analyze satellite imagery from the Indian Space Research Organisation (ISRO). The system provides environmental analysis, risk forecasting, and conversational intelligence through a context-aware interface.
 
-## Application Workflow
+## System Architecture
 
-1. **Location Selection**
-   - Click a point on the interactive map of India or select a state from the dropdown menu.
-   - The system captures the geographic coordinates for the selected region.
+The project is structured into independent frontend and backend services:
 
-2. **Time Range Selection**
-   - Specify a start and end year (between 2019 and 2024) to define the temporal scope of the analysis.
+### Frontend (`nextjs-ui/`)
+A responsive, high-performance web dashboard built with Next.js 14 App Router.
+- **Framework:** Next.js 14, React 18
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion
+- **Maps:** React Leaflet with CartoDB Dark Matter tiles
+- **Components:** Glassmorphism UI, interactive charts, and a sliding chat overlay
+- **State Management:** React Hooks and local state
+
+### Backend Models
+The intelligence layer currently consists of the following components available in the root directory:
+- **CNN (`cnn/`):** A custom DeepLabV3+ model utilizing a ResNet50 backbone, modified to accept 4-channel inputs (RGB + SWIR) for precise land cover segmentation (Vegetation, Water Bodies, Built-up Area, Barren Land).
+- **LLM (`llm/`):** An API client and recursive context manager designed to interface with an open-weight large language model (e.g., 120B parameters) for generating complex environmental reports and maintaining chat context across large temporal bounds.
+
+*Note: The Next.js frontend currently utilizes seeded mock API endpoints (`/api/analyze` and `/api/chat`) that emulate the python backend logic. These routes serve as strict API contracts ready to be replaced with the actual CNN/LLM endpoints during final integration.*
+
+## Capabilities
+
+1. **Geographic Targeting**
+   - Interactive fly-to mapping of India using CartoDB dark theme tiles.
+   - Users can select any of the 28 states and 8 union territories, or drop a custom pin.
+
+2. **Temporal Bounding**
+   - Precise filtering of historical satellite data covering the years 2019 through 2024.
 
 3. **Environmental Analysis**
-   - Click the "Analyze" button.
-   - The system processes the request to evaluate changes in vegetation, water bodies, and built-up areas for the specified timeline.
-   - It generates risk forecasts for floods, heat stress, and land degradation, along with preventive action recommendations.
+   - Calculates percentage shifts in environmental markers (vegetation growth, water body variation, and urban expansion).
+   - Generates automated risk assessments (Low/Medium/High) for immediate threats including flood risk, heat stress, and land degradation.
+   - Provides an automated, tabbed checklist of recommended immediate, medium-term, and long-term preventive actions based on geographic risk profiles.
 
-4. **Context-Aware Chat**
-   - After the analysis is complete, a chat interface becomes available on the right side of the screen.
-   - Users can ask specific questions about the environmental data.
-   - The conversational AI answers using the context of the selected location, selected time range, and the analysis results.
+4. **Conversational Intelligence**
+   - A persistent, context-aware analyst chat interface capable of answering ad-hoc queries about the specific geographic region bounding the analysis.
+   - Operates with strict location and time-range context locks.
 
-## Setup Instructions
+## Installation and Execution
 
-1. **Clone the repository and navigate to the directory**
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Setup the Frontend
+1. Clone the repository and navigate into the UI directory:
    ```bash
    git clone <repository-url>
-   cd india-eo-intelligence
+   cd "india-eo-intelligence/nextjs-ui"
    ```
 
-2. **Create and activate a virtual environment**
+2. Install dependencies:
    ```bash
-   python -m venv venv
-   # Windows
-   venv\Scripts\activate
-   # macOS/Linux
-   source venv/bin/activate
+   npm install
+   ```
+   *Required packages include: `next`, `react`, `react-dom`, `tailwindcss`, `framer-motion`, `leaflet`, `react-leaflet`, `lucide-react`.*
+
+3. Start the Next.js development server:
+   ```bash
+   npm run dev
    ```
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+4. The application will be available locally at `http://localhost:3000`.
 
-4. **Run the application**
-   ```bash
-   streamlit run app.py
-   ```
+## API Contracts (Frontend to Backend Integration)
+
+The Next.js application exposes two primary endpoints designed to interface with the Python models:
+
+### `POST /api/analyze`
+**Request Payload:**
+```json
+{
+  "latitude": 28.6139,
+  "longitude": 77.2090,
+  "start_year": 2019,
+  "end_year": 2024
+}
+```
+
+**Expected Response Schema:**
+```json
+{
+  "environmental_changes": {
+    "vegetation_change": number,
+    "water_change": number,
+    "built_up_change": number
+  },
+  "risk_forecast": {
+    "flood_risk": "Low" | "Medium" | "High",
+    "heat_stress_risk": "Low" | "Medium" | "High",
+    "land_degradation_risk": "Low" | "Medium" | "High"
+  },
+  "preventive_actions": {
+    "immediate": ["..."],
+    "medium_term": ["..."],
+    "long_term": ["..."]
+  }
+}
+```
+
+### `POST /api/chat`
+**Request Payload:**
+```json
+{
+  "query": "string",
+  "state": "string",
+  "start_year": 2019,
+  "end_year": 2024
+}
+```
+
+**Expected Response Schema:**
+```json
+{
+  "response": "string",
+  "context_used": boolean
+}
+```
+
+## License
+This architecture is developed exclusively for educational and research purposes prioritizing accurate ingestion and modeling of ISRO satellite telemetry.
