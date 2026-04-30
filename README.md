@@ -46,18 +46,38 @@ The intelligence layer currently consists of the following components available 
 - Node.js (v18 or higher)
 - npm or yarn
 
-### Setup the Frontend
-1. Clone the repository and navigate into the UI directory:
+### Setup the Backend
+**⚠️ CRITICAL:** All backend commands MUST be executed from the **project root directory** (`capstone-8th sem`), *not* from inside the `backend/` folder itself, because Python requires the root paths to resolve `from backend.model import ...` properly.
+
+1. Ensure you are in the project root directory and set up environment variables:
    ```bash
-   git clone <repository-url>
-   cd "india-eo-intelligence/nextjs-ui"
+   cd "india-eo-intelligence" # Ensure you're at the root, NOT in the backend folder
+   # Add your GEMINI_API_KEY to the .env file located at the root
+   ```
+
+2. Create a virtual environment and install dependencies:
+   ```bash
+   python -m venv backend_venv
+   backend_venv\Scripts\activate    # On Windows
+   # source backend_venv/bin/activate # On Unix/macOS
+   pip install -r backend\requirements.txt
+   ```
+
+3. Start the Python FastAPI server:
+   ```bash
+   uvicorn backend.main:app --reload --port 8000
+   ```
+
+### Setup the Frontend
+1. Keep the backend running, open a new terminal, and navigate into the UI directory:
+   ```bash
+   cd nextjs-ui
    ```
 
 2. Install dependencies:
    ```bash
    npm install
    ```
-   *Required packages include: `next`, `react`, `react-dom`, `tailwindcss`, `framer-motion`, `leaflet`, `react-leaflet`, `lucide-react`.*
 
 3. Start the Next.js development server:
    ```bash

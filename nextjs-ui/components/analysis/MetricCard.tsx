@@ -1,7 +1,7 @@
 "use client";
 import { motion, useSpring, useTransform } from 'framer-motion';
 import { Leaf, Droplets, Building2, TrendingUp, TrendingDown } from 'lucide-react';
-import React, from 'react';
+import React from 'react';
 
 interface MetricCardProps {
   title: string;
@@ -42,7 +42,7 @@ export const MetricCard = ({ title, value, type, delay = 0 }: MetricCardProps) =
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="bg-black/40 border border-white/10 rounded-lg p-4 relative overflow-hidden group hover:border-primary/30 transition-colors"
+      className="bg-white/[0.03] border border-white/10 rounded-lg p-4 relative overflow-hidden group hover:bg-white/[0.05] hover:border-white/20 transition-all duration-300"
     >
       <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
       

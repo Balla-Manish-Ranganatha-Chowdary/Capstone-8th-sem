@@ -127,7 +127,7 @@ export const ChatPanel = ({ isLocked, stateName, startYear, endYear }: ChatPanel
                   <div className={`max-w-[85%] rounded-lg p-3 text-sm ${
                     msg.role === 'user' 
                       ? 'bg-primary/20 text-white border border-primary/30 rounded-br-none'
-                      : 'bg-secondary/80 text-white/90 border border-white/10 rounded-bl-none'
+                      : 'bg-white/5 text-white/90 border border-t-white/10 border-r-white/10 border-b-white/10 border-l-[2px] border-l-white/10 hover:border-l-white/30 rounded-bl-none transition-colors duration-300'
                   }`}>
                     {msg.content}
                   </div>

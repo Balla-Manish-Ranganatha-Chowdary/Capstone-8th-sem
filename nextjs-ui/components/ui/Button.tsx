@@ -10,10 +10,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', icon: Icon, loading, children, disabled, ...props }, ref) => {
     
-    const baseStyles = "relative overflow-hidden inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-mono text-sm uppercase tracking-wider font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed";
+    const baseStyles = "relative overflow-hidden inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-mono text-sm uppercase tracking-wider font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed after:absolute after:inset-y-0 after:-left-[100%] after:w-[60%] after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent hover:after:left-[150%] after:transition-[left] after:duration-500 after:ease-out";
     
     const variants = {
-      primary: "bg-cyan-gradient text-[#050A14] hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:brightness-110",
+      primary: "bg-gradient-to-tr from-primary to-[#0088CC] text-[#050A14] hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:brightness-110",
       secondary: "bg-secondary text-white hover:bg-white/10 border border-white/10",
       glass: "glass-panel text-primary hover:bg-white/5",
     };

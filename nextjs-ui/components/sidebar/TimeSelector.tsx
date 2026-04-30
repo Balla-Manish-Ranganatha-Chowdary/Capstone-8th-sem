@@ -48,11 +48,11 @@ export const TimeSelector = ({ startYear, endYear, minYear, maxYear, onChange }:
           <label className="text-[10px] font-mono text-primary/70 uppercase tracking-widest">START YEAR</label>
           <div className="relative">
             <select 
-              className="w-full bg-secondary/50 border border-white/10 rounded-lg px-3 py-2 text-sm appearance-none focus:outline-none focus:border-primary/50 text-white/90 cursor-pointer"
+              className="w-full bg-gray-900 border border-white/10 rounded-lg px-3 py-2 text-sm appearance-none focus:outline-none focus:border-primary/50 text-white cursor-pointer"
               value={startYear}
               onChange={handleStartChange}
             >
-              {years.map(y => <option key={`start-${y}`} value={y} className="bg-secondary">{y}</option>)}
+              {years.map(y => <option key={`start-${y}`} value={y} className="bg-gray-900 text-white">{y}</option>)}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
           </div>
@@ -62,11 +62,11 @@ export const TimeSelector = ({ startYear, endYear, minYear, maxYear, onChange }:
           <label className="text-[10px] font-mono text-primary/70 uppercase tracking-widest">END YEAR</label>
           <div className="relative">
             <select 
-              className="w-full bg-secondary/50 border border-white/10 rounded-lg px-3 py-2 text-sm appearance-none focus:outline-none focus:border-primary/50 text-white/90 cursor-pointer"
+              className="w-full bg-gray-900 border border-white/10 rounded-lg px-3 py-2 text-sm appearance-none focus:outline-none focus:border-primary/50 text-white cursor-pointer"
               value={endYear}
               onChange={handleEndChange}
             >
-              {years.map(y => <option key={`end-${y}`} value={y} className="bg-secondary">{y}</option>)}
+              {years.map(y => <option key={`end-${y}`} value={y} className="bg-gray-900 text-white">{y}</option>)}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
           </div>

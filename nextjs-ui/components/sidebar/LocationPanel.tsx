@@ -1,5 +1,5 @@
 "use client";
-import React, from 'react';
+import React from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 
 // Animated number ticker component
@@ -41,13 +41,13 @@ export const LocationPanel = ({ states, selectedState, selectedLocation, onState
         <label className="text-xs font-mono text-white/50 uppercase tracking-wider">Territory / State</label>
         <div className="relative">
           <select 
-            className="w-full bg-secondary/50 border border-white/10 rounded-lg px-4 py-3 text-sm appearance-none focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer text-white/90"
+            className="w-full bg-gray-900 border border-white/10 rounded-lg px-4 py-3 text-sm appearance-none focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer text-white"
             value={selectedState || ""}
             onChange={(e) => onStateSelect(e.target.value)}
           >
-            <option value="" disabled>-- Select a State --</option>
+            <option value="" disabled className="text-gray-400 bg-gray-900">-- Select a State --</option>
             {states.map(s => (
-              <option key={s.name} value={s.name} className="bg-secondary">{s.name}</option>
+              <option key={s.name} value={s.name} className="bg-gray-900 text-white">{s.name}</option>
             ))}
           </select>
           <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
