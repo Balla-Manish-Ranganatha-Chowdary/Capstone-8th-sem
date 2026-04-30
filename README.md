@@ -1,97 +1,218 @@
 # India Earth-Observation Intelligence System
 
-A full-stack web application designed to analyze satellite imagery from the Indian Space Research Organisation (ISRO). The system provides environmental analysis, risk forecasting, and conversational intelligence through a context-aware interface.
+A full-stack geospatial intelligence platform for environmental risk assessment over the Indian subcontinent. The system ingests multispectral satellite imagery from ISRO constellations, runs land-cover segmentation through a fine-tuned NASA-IBM Prithvi-100M geospatial foundation model, and surfaces actionable flood, heat stress, and land degradation risk narratives through a DPO-aligned large language model — all accessible via an interactive web dashboard.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [System Architecture](#system-architecture)
+- [Key Capabilities](#key-capabilities)
+- [Tech Stack](#tech-stack)
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+- [API Reference](#api-reference)
+- [Model Details](#model-details)
+- [License](#license)
+
+---
+
+## Overview
+
+Traditional disaster management in India relies on static hazard maps and manual interpretation of satellite imagery — workflows that cannot scale to the petabyte-level data streams produced by constellations like ISRO Resourcesat-2A and Cartosat. This platform addresses that gap by combining:
+
+- **NASA-IBM Prithvi-100M** — a Vision Transformer pre-trained on 4.2 million global HLS time-series tiles, fine-tuned here as a four-class land-cover segmentation backbone using ISRO multispectral input (Green, Red, NIR, SWIR).
+- **A DPO-aligned LLM** — a preference-optimized large language model grounded in satellite-derived physical quantities through a structured Geospatial Awareness Layer (GAL), which prevents hallucination by anchoring all reasoning to numerically verified perception scripts.
+- **A Next.js web dashboard** — a responsive, map-first interface exposing geographic targeting, temporal bounding, environmental analysis, and a persistent conversational analyst.
+
+No foundation model is trained from scratch. Prithvi-100M is used as a frozen pre-trained backbone; only the segmentation head and DPO alignment layers are fine-tuned for the Indian environmental context.
+
+---
 
 ## System Architecture
 
-The project is structured into independent frontend and backend services:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  SATELLITE DATA ACQUISITION                      │
+│         ISRO Resourcesat-2A (LISS-3 / AWiFS)  +  Cartosat       │
+│              Green · Red · NIR · SWIR bands                      │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              NASA-IBM PRITHVI-100M VISION ENCODER                │
+│   Pre-trained ViT · Frozen backbone · Fine-tuned seg. head       │
+│   Output: 4-class pixel mask                                     │
+│   Classes: Vegetation · Water Bodies · Built-up · Barren Land    │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              GEOSPATIAL AWARENESS LAYER  (GAL)                   │
+│   Perception Script  S(R,T) = (L, M, H, E)                      │
+│   L: land-cover fractions · M: LULC transition matrix            │
+│   H: NDWI / SWIR moisture indices · E: exposure proxies          │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  DPO-ALIGNED LLM                                 │
+│   Neuro-symbolic verification · Evidence-grounded narratives     │
+│   Output: Low / Medium / High risk + natural-language report     │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  NEXT.JS WEB DASHBOARD                           │
+│   Interactive map · Temporal bounding · Chat analyst overlay     │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### Frontend (`nextjs-ui/`)
-A responsive, high-performance web dashboard built with Next.js 14 App Router.
-- **Framework:** Next.js 14, React 18
-- **Styling:** Tailwind CSS
-- **Animations:** Framer Motion
-- **Maps:** React Leaflet with CartoDB Dark Matter tiles
-- **Components:** Glassmorphism UI, interactive charts, and a sliding chat overlay
-- **State Management:** React Hooks and local state
+### Repository Structure
 
-### Backend Models
-The intelligence layer currently consists of the following components available in the root directory:
-- **CNN (`cnn/`):** A custom DeepLabV3+ model utilizing a ResNet50 backbone, modified to accept 4-channel inputs (RGB + SWIR) for precise land cover segmentation (Vegetation, Water Bodies, Built-up Area, Barren Land).
-- **LLM (`llm/`):** An API client and recursive context manager designed to interface with an open-weight large language model (e.g., 120B parameters) for generating complex environmental reports and maintaining chat context across large temporal bounds.
+```
+india-eo-intelligence/
+├── backend/
+│   ├── main.py               # FastAPI application entry point
+│   ├── requirements.txt      # Python dependencies
+│   ├── prithvi/              # Prithvi-100M fine-tuning and inference
+│   │   ├── model.py          # ViT encoder + segmentation head
+│   │   ├── inference.py      # Perception script generation (GAL)
+│   │   └── weights/          # Fine-tuned checkpoint (not tracked)
+│   └── llm/                  # DPO-aligned LLM interface
+│       ├── client.py         # API client for LLM inference
+│       └── context.py        # Recursive context manager
+├── nextjs-ui/                # Next.js 14 frontend
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── analyze/      # Mock → real backend contract
+│   │   │   └── chat/         # Mock → real backend contract
+│   │   └── page.tsx
+│   └── components/
+├── .env                      # GEMINI_API_KEY and config
+└── README.md
+```
 
-*Note: The Next.js frontend currently utilizes seeded mock API endpoints (`/api/analyze` and `/api/chat`) that emulate the python backend logic. These routes serve as strict API contracts ready to be replaced with the actual CNN/LLM endpoints during final integration.*
+---
 
-## Capabilities
+## Key Capabilities
 
-1. **Geographic Targeting**
-   - Interactive fly-to mapping of India using CartoDB dark theme tiles.
-   - Users can select any of the 28 states and 8 union territories, or drop a custom pin.
+### Geographic Targeting
+Interactive fly-to mapping of India using CartoDB Dark Matter tiles via React Leaflet. Users can select any of the 28 states and 8 union territories or drop a custom coordinate pin anywhere on the subcontinent.
 
-2. **Temporal Bounding**
-   - Precise filtering of historical satellite data covering the years 2019 through 2024.
+### Temporal Bounding
+Precise filtering of historical satellite data spanning 2019 through 2024, enabling multi-year land-cover change analysis and trend detection.
 
-3. **Environmental Analysis**
-   - Calculates percentage shifts in environmental markers (vegetation growth, water body variation, and urban expansion).
-   - Generates automated risk assessments (Low/Medium/High) for immediate threats including flood risk, heat stress, and land degradation.
-   - Provides an automated, tabbed checklist of recommended immediate, medium-term, and long-term preventive actions based on geographic risk profiles.
+### Environmental Analysis
+- Percentage shifts in vegetation cover, water body extent, and urban built-up area computed from Prithvi-100M segmentation masks.
+- Automated three-tier risk assessment (Low / Medium / High) for flood risk, heat stress, and land degradation, grounded in SWIR moisture indices and LULC transition matrices.
+- Tabbed preventive action checklists — immediate, medium-term, and long-term — generated by the DPO-aligned LLM based on the region's physical risk profile.
 
-4. **Conversational Intelligence**
-   - A persistent, context-aware analyst chat interface capable of answering ad-hoc queries about the specific geographic region bounding the analysis.
-   - Operates with strict location and time-range context locks.
+### Conversational Intelligence
+A persistent, context-aware analyst chat interface that answers ad-hoc queries about the selected geographic region and time window. The LLM operates under strict location and time-range context locks enforced by the GAL perception script, preventing it from reasoning outside the bounds of the current satellite observation.
 
-## Installation and Execution
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Vision Encoder | NASA-IBM Prithvi-100M (ViT, HLS pre-trained) |
+| Segmentation Head | Fine-tuned linear decoder (4-class) |
+| LLM | DPO-aligned open-weight model (Gemini API) |
+| Backend Framework | FastAPI (Python) |
+| Frontend Framework | Next.js 14, React 18 |
+| Styling | Tailwind CSS |
+| Animations | Framer Motion |
+| Maps | React Leaflet + CartoDB Dark Matter |
+| Satellite Input | ISRO Resourcesat-2A (LISS-3, AWiFS), Cartosat |
+| Reference Dataset | Harmonized Landsat Sentinel-2 (HLS) |
+
+---
+
+## Installation
+
+> **Critical:** All backend commands must be run from the **project root directory** (`india-eo-intelligence/`), not from inside the `backend/` folder. Python resolves imports as `from backend.model import ...` relative to the root.
 
 ### Prerequisites
-- Node.js (v18 or higher)
+
+- Python 3.10 or higher
+- Node.js v18 or higher
 - npm or yarn
+- A valid `GEMINI_API_KEY`
 
-### Setup the Backend
-**⚠️ CRITICAL:** All backend commands MUST be executed from the **project root directory** (`capstone-8th sem`), *not* from inside the `backend/` folder itself, because Python requires the root paths to resolve `from backend.model import ...` properly.
+---
 
-1. Ensure you are in the project root directory and set up environment variables:
-   ```bash
-   cd "india-eo-intelligence" # Ensure you're at the root, NOT in the backend folder
-   # Add your GEMINI_API_KEY to the .env file located at the root
-   ```
+### Backend Setup
 
-2. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv backend_venv
-   backend_venv\Scripts\activate    # On Windows
-   # source backend_venv/bin/activate # On Unix/macOS
-   pip install -r backend\requirements.txt
-   ```
+**1. Navigate to the project root:**
+```bash
+cd india-eo-intelligence
+```
 
-3. Start the Python FastAPI server:
-   ```bash
-   uvicorn backend.main:app --reload --port 8000
-   ```
+**2. Add your API key to the `.env` file at the project root:**
+```
+GEMINI_API_KEY=your_key_here
+```
 
-### Setup the Frontend
-1. Keep the backend running, open a new terminal, and navigate into the UI directory:
-   ```bash
-   cd nextjs-ui
-   ```
+**3. Create and activate a virtual environment:**
+```bash
+python -m venv backend_venv
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Windows
+backend_venv\Scripts\activate
 
-3. Start the Next.js development server:
-   ```bash
-   npm run dev
-   ```
+# Unix / macOS
+source backend_venv/bin/activate
+```
 
-4. The application will be available locally at `http://localhost:3000`.
+**4. Install Python dependencies:**
+```bash
+pip install -r backend/requirements.txt
+```
 
-## API Contracts (Frontend to Backend Integration)
+**5. Start the FastAPI server:**
+```bash
+uvicorn backend.main:app --reload --port 8000
+```
 
-The Next.js application exposes two primary endpoints designed to interface with the Python models:
+The backend will be available at `http://localhost:8000`. Keep this terminal running.
+
+---
+
+### Frontend Setup
+
+**1. Open a new terminal and navigate to the UI directory:**
+```bash
+cd nextjs-ui
+```
+
+**2. Install dependencies:**
+```bash
+npm install
+```
+
+**3. Start the development server:**
+```bash
+npm run dev
+```
+
+The dashboard will be available at `http://localhost:3000`.
+
+> The Next.js frontend currently uses seeded mock API endpoints at `/api/analyze` and `/api/chat` that emulate the Python backend responses. These routes serve as strict API contracts and will be replaced with live Prithvi-100M and LLM endpoints during final integration.
+
+---
+
+## API Reference
 
 ### `POST /api/analyze`
-**Request Payload:**
+
+Triggers land-cover segmentation and risk assessment for a geographic coordinate over a specified time range.
+
+**Request:**
 ```json
 {
   "latitude": 28.6139,
@@ -101,18 +222,18 @@ The Next.js application exposes two primary endpoints designed to interface with
 }
 ```
 
-**Expected Response Schema:**
+**Response:**
 ```json
 {
   "environmental_changes": {
-    "vegetation_change": number,
-    "water_change": number,
-    "built_up_change": number
+    "vegetation_change": -4.2,
+    "water_change": 2.1,
+    "built_up_change": 6.8
   },
   "risk_forecast": {
-    "flood_risk": "Low" | "Medium" | "High",
-    "heat_stress_risk": "Low" | "Medium" | "High",
-    "land_degradation_risk": "Low" | "Medium" | "High"
+    "flood_risk": "High",
+    "heat_stress_risk": "Medium",
+    "land_degradation_risk": "Low"
   },
   "preventive_actions": {
     "immediate": ["..."],
@@ -122,24 +243,58 @@ The Next.js application exposes two primary endpoints designed to interface with
 }
 ```
 
+---
+
 ### `POST /api/chat`
-**Request Payload:**
+
+Submits a natural-language query to the DPO-aligned LLM, locked to the geographic and temporal context of the current analysis session.
+
+**Request:**
 ```json
 {
-  "query": "string",
-  "state": "string",
-  "start_year": 2019,
+  "query": "Which districts downstream of the Tista barrage show elevated moisture stress?",
+  "state": "West Bengal",
+  "start_year": 2021,
   "end_year": 2024
 }
 ```
 
-**Expected Response Schema:**
+**Response:**
 ```json
 {
-  "response": "string",
-  "context_used": boolean
+  "response": "Based on SWIR moisture indices for West Bengal (2021–2024)...",
+  "context_used": true
 }
 ```
 
+---
+
+## Model Details
+
+### Prithvi-100M Vision Encoder
+
+| Property | Detail |
+|---|---|
+| Architecture | Vision Transformer (ViT) with 3D spatiotemporal tubelets |
+| Pre-training | Masked Autoencoder (MAE) on 4.2M HLS global time-series tiles |
+| Backbone | Frozen during fine-tuning |
+| Fine-tuned component | Lightweight segmentation head (4-class) |
+| Input bands | Green, Red, NIR, SWIR (Resourcesat-2A LISS-3 / AWiFS) |
+| Output classes | Vegetation, Water Bodies, Built-up Area, Barren Land |
+| Hardware requirement | 8 GB VRAM (QLoRA-optimized) |
+
+### DPO-Aligned LLM
+
+| Property | Detail |
+|---|---|
+| Alignment method | Direct Preference Optimization (DPO) |
+| Fine-tuning strategy | QLoRA (4-bit, rank 32) |
+| Grounding mechanism | GAL perception script S(R,T) = (L, M, H, E) |
+| Verification | Neuro-symbolic constraint checking before output |
+| Output schema | Three-tier risk (Low / Medium / High) + narrative |
+
+---
+
 ## License
-This architecture is developed exclusively for educational and research purposes prioritizing accurate ingestion and modeling of ISRO satellite telemetry.
+
+This system is developed exclusively for educational and research purposes, with a focus on accurate ingestion and analysis of ISRO satellite telemetry for humanitarian disaster management applications.
